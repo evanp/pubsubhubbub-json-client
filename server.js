@@ -309,7 +309,17 @@ var subscribe = function(req, res) {
     var topic = req.body.topic;
 
     var showError = function(message) {
-        showForm(req, res);
+        res.writeHead(500, {'Content-Type': 'text/html'});
+        res.end("<!DOCTYPE html>\n"+
+                "<html>" +
+                "<head><title>PubSubHubbub JSON Client Result</title></head>" +
+                "<body>" +
+                "<h1>PubSubHubbub JSON Client Result</h1>" +
+                "<p>"+
+		message +
+                "</p>" +
+                "</body>" +
+                "</html>");
     };
 
     if (!topic) {
@@ -320,16 +330,16 @@ var subscribe = function(req, res) {
     discoverHub(topic, function(err, hub) {
 
         if (err) {
-            showError();
+            showError(err.message);
             return;
         }
         subscribeTopic(topic, hub, function(err, results) {
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.end("<!DOCTYPE html>\n"+
                     "<html>" +
-                    "<head><title>CRAPI Result</title></head>" +
+                    "<head><title>PubSubHubbub JSON Client Result</title></head>" +
                     "<body>" +
-                    "<h1>CRAPI Result</h1>" +
+                    "<h1>PubSubHubbub JSON Client Result</h1>" +
                     "<p>"+
                     "Successfully subscribed to " + topic +
                     "</p>" +
