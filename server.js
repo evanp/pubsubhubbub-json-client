@@ -348,7 +348,7 @@ var server = connect.createServer(
     connect.errorHandler({showMessage: true}),
     connect.router(function(app) {
         app.get('/', showForm);
-        app.post('/', connect.bodyParse(), subscribe);
+        app.post('/', connect.bodyParser(), subscribe);
         app.post('/callback', subCallback);
     })
 );
