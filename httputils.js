@@ -29,7 +29,7 @@ var httputils = {
             port: parts.port,
             path: (parts.search) ? parts.pathname+'?'+parts.search : parts.pathname,
             method: 'GET',
-            headers: {'user-agent': 'crapi-example/0.1.0dev'}
+            headers: {'user-agent': 'pubsubhubbub-json-client/0.1.0dev'}
         };
 
         var creq = http.request(options, function(res) {
@@ -63,7 +63,7 @@ var httputils = {
             path: (parts.search) ? parts.pathname+'?'+parts.search : parts.pathname,
             method: 'POST',
             headers: {'content-type': 'application/x-www-form-urlencoded',
-                      'user-agent': 'crapi-example/0.1.0dev'}
+                      'user-agent': 'pubsubhubbub-json-client/0.1.0dev'}
         };
 
         var creq = http.request(options, function(res) {
@@ -97,7 +97,7 @@ var httputils = {
             port: parts.port,
             path: (parts.search) ? parts.pathname+'?'+parts.search : parts.pathname,
             method: 'HEAD',
-            headers: {'user-agent': 'crapi-example/0.1.0dev'}
+            headers: {'user-agent': 'pubsubhubbub-json-client/0.1.0dev'}
         };
 
         var creq = http.request(options, function(res) {
@@ -120,7 +120,7 @@ var httputils = {
             port: parts.port,
             path: (parts.search) ? parts.pathname+'?'+parts.search : parts.pathname,
             method: 'DELETE',
-            headers: {'user-agent': 'crapi-example/0.1.0dev'}
+            headers: {'user-agent': 'pubsubhubbub-json-client/0.1.0dev'}
         };
 
         var creq = http.request(options, function(res) {
