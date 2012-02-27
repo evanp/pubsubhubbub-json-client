@@ -35,9 +35,7 @@ var parseJSON = function(req, fn) {
     req.on('end', function(){
         req.rawBody = buf;
         try {
-            req.body = buf.length
-                ? JSON.parse(buf)
-                : {};
+            req.body = buf.length ? JSON.parse(buf) : {};
             fn();
         } catch (err) {
             fn(err);
@@ -59,36 +57,36 @@ var verifySubscription = function(req, res) {
 
     var parse = bodyParser.parse['application/x-www-form-urlencoded'],
         showError = function(message) {
-	    res.writeHead(404, {'Content-Type': 'text/plain'});
-	    res.end('Suck it loser');
+            res.writeHead(404, {'Content-Type': 'text/plain'});
+            res.end('Suck it loser');
         };
 
     parse(req, {}, function(err) {
 
-	var params = req.body;
-	var verify_token = params['hub.verify_token'];
+        var params = req.body;
+        var verify_token = params['hub.verify_token'];
 
-	if (!_(requests).has(verify_token)) {
+        if (!_(requests).has(verify_token)) {
 
             showError();
 
-	} else if (params['hub.mode'] === requests[verify_token].mode &&
-	           params['hub.topic'] === requests[verify_token].topic) {
+        } else if (params['hub.mode'] === requests[verify_token].mode &&
+                   params['hub.topic'] === requests[verify_token].topic) {
 
-	    res.writeHead(200, {'Content-Type': 'text/plain'});
-	    res.end(params['hub.challenge']);
+            res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.end(params['hub.challenge']);
 
-	} else {
+        } else {
             showError();
-	}
+        }
     });
 };
 
 var receiveContent = function(req, res) {
 
     var showError = function(message) {
-	res.writeHead(404, {'Content-Type': 'text/plain'});
-	res.end('Suck it loser');
+        res.writeHead(404, {'Content-Type': 'text/plain'});
+        res.end('Suck it loser');
     };
 
     parseJSON(req, function(err) {
@@ -100,7 +98,7 @@ var receiveContent = function(req, res) {
             return;
         }
 
-        if (!_.(req.body).has('items') || 
+        if (!_(req.body).has('items') || 
             !_(req.body.items).isArray() || 
             req.body.items.length === 0)
         {
@@ -155,8 +153,8 @@ var subCallback = function(req, res) {
 
     } else {
 
-	res.writeHead(400, {'Content-Type': 'text/plain'});
-	res.end('Suck it loser');
+        res.writeHead(400, {'Content-Type': 'text/plain'});
+        res.end('Suck it loser');
 
     }
 };
@@ -185,7 +183,7 @@ var discoverHub = function(topic, callback) {
             var doc;
             if (err) {
                 callback(err, null);
-            } else if (!res.headers['content-type'] === 'application/json') {
+            } else if (res.headers['content-type'] !== 'application/json') {
                 callback(new Error("Not JSON"), null);
             } else {
                 try {
@@ -240,11 +238,11 @@ var discoverHub = function(topic, callback) {
 
     httputils.head(topic, function(err, res) {
         var hubs = [], links, i;
-        if (err || !res.headers['link']) {
+        if (err || !res.headers.link) {
             theHardWay(topic, callback);
             return;
         }
-        links = getLinks(res.headers['link']);
+        links = getLinks(res.headers.link);
         for (i in links) {
             if (links[i].rel === 'hub') {
                 hubs.push(links[i].href);
@@ -261,10 +259,49 @@ var discoverHub = function(topic, callback) {
 
 var subscribeTopic = function(topic, hub, callback) {
 
-    var params = {'hub.callback': localUrl('callback'),
-                  'hub.mode': 'subscribe',
-                  
-                  
+    var verifyToken, secret, params,
+        urlsafe = function(buf) {
+            var str = buf.toString('base64');
+            str = str.replace(/\+/g, '-');
+            str = str.replace(/\//g, '_');
+            str = str.replace(/\=/g, '');
+            return str;
+        },
+        newVerifyToken = function() {
+            return urlsafe(crypto.randomBytes(16));
+        },
+        newSecret = function() {
+            return urlsafe(crypto.randomBytes(64));
+        };
+    
+    verifyToken = newVerifyToken();
+    secret = newSecret();
+
+    params = {'hub.callback': localURL('callback'),
+              'hub.mode': 'subscribe',
+              'hub.topic': topic,
+              'hub.verify': 'sync',
+              'hub.verify_token': verifyToken,
+              'hub.secret': secret};
+
+    requests[verifyToken] = {
+        mode: 'subscribe',
+        topic: topic
+    };
+
+    httputils.post(hub, params, function(err, res) {
+        if (err) {
+            callback(err, null);
+        } else if (res.statusCode < 200 || res.statusCode >= 300) {
+            callback(new Error("Failed subscription."), null);
+        } else {
+            subscriptions[topic] = {
+                secret: secret,
+                created: Date.now()
+            };
+            callback(null, subscriptions[topic]);
+        }
+    });
 };
 
 var subscribe = function(req, res) {
@@ -288,8 +325,22 @@ var subscribe = function(req, res) {
         }
         subscribeTopic(topic, hub, function(err, results) {
             res.writeHead(200, {'Content-Type': 'text/html'});
+            res.end("<!DOCTYPE html>\n"+
+                    "<html>" +
+                    "<head><title>CRAPI Result</title></head>" +
+                    "<body>" +
+                    "<h1>CRAPI Result</h1>" +
+                    "<p>"+
+                    "Successfully subscribed to " + topic +
+                    "</p>" +
+                    "</body>" +
+                    "</html>");
         });
     });
+};
+
+var localURL = function(rel) {
+    return 'http://' + config.server + '/' + rel;
 };
 
 var server = connect.createServer(
