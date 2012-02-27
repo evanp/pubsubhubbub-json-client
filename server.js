@@ -333,18 +333,24 @@ var subscribe = function(req, res) {
             showError(err.message);
             return;
         }
+
         subscribeTopic(topic, hub, function(err, results) {
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.end("<!DOCTYPE html>\n"+
-                    "<html>" +
-                    "<head><title>PubSubHubbub JSON Client Result</title></head>" +
-                    "<body>" +
-                    "<h1>PubSubHubbub JSON Client Result</h1>" +
-                    "<p>"+
-                    "Successfully subscribed to " + topic +
-                    "</p>" +
-                    "</body>" +
-                    "</html>");
+	    if (err) {
+		showError(err.message);
+		return;
+	    } else {
+		res.writeHead(200, {'Content-Type': 'text/html'});
+		res.end("<!DOCTYPE html>\n"+
+			"<html>" +
+			"<head><title>PubSubHubbub JSON Client Result</title></head>" +
+			"<body>" +
+			"<h1>PubSubHubbub JSON Client Result</h1>" +
+			"<p>"+
+			"Successfully subscribed to " + topic +
+			"</p>" +
+			"</body>" +
+			"</html>");
+	    }
         });
     });
 };
