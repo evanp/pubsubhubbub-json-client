@@ -1,0 +1,8 @@
+{
+    "name": "pubsubhubbub-json-client",
+    "version": "0.1.0-0.dev",
+    "dependencies": {
+	"connect": "*",
+	"underscore": "*"
+    }
+}
